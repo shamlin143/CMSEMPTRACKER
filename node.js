@@ -27,7 +27,7 @@ function startRun() {
       "Add Employee", 
       "Add roles", 
       "Add Departments", 
-      "Delete Employees", 
+      "Delete Employee", 
       "Update Employee Roles",
       "I am done"
     ]
@@ -57,6 +57,11 @@ function startRun() {
         case "Add Departments":
           addDepartment();
           break;
+
+      case "Delete Employee":
+        employeeView(); 
+        deleteEmployee();
+        break;   
          
        case "I am done":
         imDone(); 
@@ -118,32 +123,14 @@ function addEmployee() {
         name: "manager_id",
         type: "input",
         message: "What is employee manager_id?",
-
-        validate: function(value) {
-          if (isNaN(value) === false) {
-            return true;
-          }
-          return false;
-        }
       }
       ])
     .then(function(answer) {
       // when finished prompting, insert a new item into the db with that info
       connection.query(
-        "INSERT INTO employee ?",
-        {
-          id: answer.id,
-          first_name: answer.first_name,
-          last_name: answer.last_name,
-          role_id: answer.role_id,
-          manager_id: answer.manager_id
-  },
-        function(err) {
-          if (err) throw err;
-          console.log("Your employee was created successfully!");
-          startRun();
-        }
-      );
+        "INSERT INTO employee (id,title,salary,department_id) VALUES (?,?,?,?,?)",[answer.id,answer.first_name,answer.last_name,answer.role_id,answer.manager_id],
+      
+  );
     });
 }
 
@@ -161,6 +148,8 @@ function addEmployee() {
           name: "title",
           type: "input",
           message: "What is title",
+        },
+
         {
           name: "salary",
           type: "input",
@@ -170,74 +159,102 @@ function addEmployee() {
           name: "department_id",
           type: "input",
           message: "What is department_id?",
-              
-          validate: function(value) {
-            if (isNaN(value) === false) {
-              return true;
-            }
-            return false;
+            
+          function(err) {
+            if (err) throw err;
+            console.log("Your department was created successfully!");
+            startRun();
           }
         }
-        ])
-      .then(function(answer) {
+      ]).then(function(answer) {
         // when finished prompting, insert a new item into the db with that info
         connection.query(
-          "INSERT INTO role ?",
-          {
-            id: answer.id,
-            title: answer.name,
-            salary: answer.salary,
-            role_id: answer.role_id,
-            department_id: answer.department_id
-    },
+ 
+          "INSERT INTO role (id,title,salary,department_id) VALUES (?,?,?,?)",[answer.id,answer.title,answer.salary,answer.department_id],
+        
           function(err) {
             if (err) throw err;
             console.log("Your role was created successfully!");
             startRun();
+        
           }
-        );
-      });
-  }
-
+      
+        )});
+        
+        }
   // function to handle posting new department
-  function addRole() {
+  function addDepartment() {
     // prompt for info about the new department
     inquirer
       .prompt([
         {
           name: "id",
           type: "input",
-          message: "what is  id?",
+          message: "what is department_id?",
         },
         {
           name: "department_name",
           type: "input",
           message: "What is department_name?",
-              
-          validate: function(value) {
-            if (isNaN(value) === false) {
-              return true;
-            }
-            return false;
-          }
+            
         }
-        ])
+  ])
       .then(function(answer) {
         // when finished prompting, insert a new item into the db with that info
         connection.query(
-          "INSERT INTO role ?",
-          {
-            id: answer.id,
-            department_name: answer.department_name,
-
-    },
-          function(err) {
-            if (err) throw err;
-            console.log("Your department was created successfully!");
-            startRun();
-          }
-        );
-      });
+          "INSERT INTO department (id,department_iname) VALUES (?,?)",[answer.id,answer.department_name],
+       
+         function(err,res) {
+           if (err) throw err;
+             console.log(res.affectedRows + " item inserted!\n");
+             startRun();
+            
+    }
+  )});
+  }
+   // function to handle deleting an employee
+   function deleteEmployee() {
+    // prompt for info about the employee to delete
+    inquirer
+    .prompt([
+      {
+        name: "id",
+        type: "input",
+        message: "what is Employee id?",
+      },
+      {
+        name: "first_name",
+        type: "input",
+        message: "What is employee first_name?",
+      },
+      {
+        name: "last_name",
+        type: "input",
+        message: "What is employee last_name?",
+      },
+      {
+        name: "role_id",
+        type: "input",
+        message: "What is employee role_id?",
+      },
+      {
+        name: "manager_id",
+        type: "input",
+        message: "What is employee manager_id?",
+      }
+      ])
+      .then(function(answer) {
+        // when finished prompting, insert a new item into the db with that info
+        connection.query(
+          "DELETE FROM employee WHERE(id,first_name,last_name,role_id,manager_id) VALUES (?,?,?,?,?)",[answer.id,answer.first_name,answer.last_name,answer.role_id,answer.manager_id],
+       
+         function(err,res) {
+           if (err) throw err;
+             console.log(res.affectedRows + " item deleted!\n");
+             startRun();
+            
+    }
+  )});
   }
 
   function imDone() {
@@ -246,70 +263,3 @@ function addEmployee() {
   }
 
 
-// async function getSelection(){
-//   const selection = await inquirer.prompt(questions[0]);
-//   console.log(selection);
-//   switch (selection.action){
-//     case "Employees":
-//       displayItems();
-//       const {Employee} = await inquirer.prompt(questions[1]);
-//       console.log(Employee);
-//   }}  
-// function displayItems(){
-//   connection.query("SELECT * FROM employee", function(err, res) {
-//     if (err) throw err;
-//     res.forEach(el => {
-//       console.log(el.item)
-//     });
-//   });
-// };
-// function userbid(bid, bidItem){
-//   connection.query("SELECT * FROM bids WHERE ?", 
-//   {
-//     item: bidItem
-//   },
-//     function(err, res) {
-//     if (err) throw err;
-//     console.log(res);
-//     console.log(res[0].highestbid);
-//     console.log(bid);
-//     if (bid > res[0].highestbid){
-//       let query = connection.query(
-//         "update bids set ? where ?",
-//         [
-//           {
-//             highestbid: bid
-//           },
-//           {
-//             item: bidItem
-//           }
-//         ],
-//         function(err, res) {
-//           if (err) throw err;
-//           console.log(res.affectedRows + " bid successful!\n");
-//           // Call deleteProduct AFTER the UPDATE completes
-//           connection.end();
-//         }
-//       ) 
-//     } else {
-//       console.log("Bid not high enough!")
-//       getSelection();
-//     };
-//   });
-// }
-// function addItem(sellItem,startPrice){
-//   const query = connection.query(
-//     "Insert into bids set ?",
-//     {
-//       item: sellItem,
-//       highestbid: startPrice
-//     },
-//     function(err,res) {
-//       if (err) throw err;
-//       console.log(res.affectedRows + " item inserted!\n");
-//       displayItems();
-//       connection.end();
-//     }
-//   )
-// }
-// getSelection();
