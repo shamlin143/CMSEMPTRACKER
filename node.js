@@ -1,6 +1,9 @@
 var mysql = require("mysql")
 var inquirer = require("inquirer")
 var consoletable = require("console.table")
+const logo = require('asciiart-logo');
+const config = require('./package.json');
+console.log(logo(config).render());
 const connection = mysql.createConnection({
   host:"localhost",
   port: 3306,
@@ -13,6 +16,7 @@ connection.connect(function(err){
   console.log(`connected as id + ${connection.threadId}`);
 startRun();
 });
+
 
 function startRun() {
   inquirer
@@ -46,6 +50,10 @@ function startRun() {
          departmentView();
          break; 
 
+       case "Update Employee Role":
+         updateEmployeeRole();
+         break; 
+
       case "Add Employee":
         addEmployee();
         break;
@@ -61,7 +69,15 @@ function startRun() {
       case "Delete Employee":
         employeeView(); 
         deleteEmployee();
-        break;   
+        break; 
+        
+      case "Delete Role":
+        deleteRole();
+        break;
+
+      case "Delete Department":
+        deleteDepartment();
+        break;
          
        case "I am done":
         imDone(); 
@@ -72,12 +88,13 @@ function startRun() {
    )};
 
    function employeeView() {
-  connection.query("SELECT * FROM employee", function(err, res) {
+   connection.query("SELECT id,first_name,last_name,role_id,manager_id FROM employee", function(err, res, fields) {
     if (err) throw err;
     console.log(res);
     startRun();
   });
 }
+
 
 function departmentView() {
   connection.query("SELECT * FROM department", function(err, res) {
@@ -128,17 +145,22 @@ function addEmployee() {
     .then(function(answer) {
       // when finished prompting, insert a new item into the db with that info
       connection.query(
-        "INSERT INTO employee (id,title,salary,department_id) VALUES (?,?,?,?,?)",[answer.id,answer.first_name,answer.last_name,answer.role_id,answer.manager_id],
+        "INSERT INTO employee (id,first_name,last_name,role_id,manager_id) VALUES (?,?,?,?,?)",[answer.id,answer.first_name,answer.last_name,answer.role_id,answer.manager_id],
       
-  );
-    });
-}
+        function(err) {
+          if (err) throw err;
+          console.log("Your employee was created successfully!");
+          startRun();
+      
+        }
+        )});
+       };
 
-  // function to handle posting new role
-  function addRole() {
-    // prompt for info about the new role
-    inquirer
-      .prompt([
+          // function to handle posting new role
+         function addRole() {
+        // prompt for info about the new role
+        inquirer
+        .prompt([
         {
           name: "id",
           type: "input",
@@ -159,29 +181,21 @@ function addEmployee() {
           name: "department_id",
           type: "input",
           message: "What is department_id?",
-            
-          function(err) {
-            if (err) throw err;
-            console.log("Your department was created successfully!");
-            startRun();
-          }
         }
-      ]).then(function(answer) {
+      ])
+      .then(function(answer) {
         // when finished prompting, insert a new item into the db with that info
         connection.query(
  
           "INSERT INTO role (id,title,salary,department_id) VALUES (?,?,?,?)",[answer.id,answer.title,answer.salary,answer.department_id],
-        
+
           function(err) {
             if (err) throw err;
             console.log("Your role was created successfully!");
             startRun();
-        
-          }
-      
-        )});
-        
         }
+      );
+       });}
   // function to handle posting new department
   function addDepartment() {
     // prompt for info about the new department
@@ -198,68 +212,93 @@ function addEmployee() {
           message: "What is department_name?",
             
         }
-  ])
-      .then(function(answer) {
+      ])
+        .then(function(answer) {
         // when finished prompting, insert a new item into the db with that info
-        connection.query(
+          connection.query(
           "INSERT INTO department (id,department_iname) VALUES (?,?)",[answer.id,answer.department_name],
        
          function(err,res) {
            if (err) throw err;
-             console.log(res.affectedRows + " item inserted!\n");
+             console.log("Your Department was Created");
              startRun();
             
-    }
-  )});
-  }
-   // function to handle deleting an employee
-   function deleteEmployee() {
-    // prompt for info about the employee to delete
-    inquirer
-    .prompt([
+       }
+        )});
+     }
+        // function to handle deleting an employee
+        function deleteEmployee() {
+       // prompt for info about the employee to delete
+        inquirer
+        .prompt([
       {
         name: "id",
         type: "input",
-        message: "what is Employee id?",
+        message: "what is Employee's id?",
       },
-      {
-        name: "first_name",
-        type: "input",
-        message: "What is employee first_name?",
-      },
-      {
-        name: "last_name",
-        type: "input",
-        message: "What is employee last_name?",
-      },
-      {
-        name: "role_id",
-        type: "input",
-        message: "What is employee role_id?",
-      },
-      {
-        name: "manager_id",
-        type: "input",
-        message: "What is employee manager_id?",
-      }
-      ])
+        ])
       .then(function(answer) {
         // when finished prompting, insert a new item into the db with that info
         connection.query(
-          "DELETE FROM employee WHERE(id,first_name,last_name,role_id,manager_id) VALUES (?,?,?,?,?)",[answer.id,answer.first_name,answer.last_name,answer.role_id,answer.manager_id],
-       
-         function(err,res) {
+          "DELETE FROM employee WHERE id = ?",[answer.id],
+          function(err,res) {
            if (err) throw err;
-             console.log(res.affectedRows + " item deleted!\n");
+             console.log("Employee was deleted");
              startRun();
             
-    }
-  )});
-  }
+     }
+      )});
+      }
 
-  function imDone() {
-    console.log("Good BYE");
-    connection.end();
-  }
+              // function to handle deleting an employee
+              function deleterole() {
+                // prompt for info about the employee to delete
+                 inquirer
+                 .prompt([
+               {
+                 name: "id",
+                 type: "input",
+                 message: "what is the role id?",
+               },
+                 ])
+               .then(function(answer) {
+                 // when finished prompting, insert a new item into the db with that info
+                 connection.query(
+                   "DELETE FROM role WHERE id = ?",[answer.id],
+                   function(err,res) {
+                    if (err) throw err;
+                      console.log("role was deleted");
+                      startRun();
+                     
+              }
+               )});
+               }
 
-
+                       // function to handle deleting an employee
+        function deleteDepartment() {
+          // prompt for info about the employee to delete
+           inquirer
+           .prompt([
+         {
+           name: "id",
+           type: "input",
+           message: "what is Employee's id?",
+         },
+           ])
+         .then(function(answer) {
+           // when finished prompting, insert a new item into the db with that info
+           connection.query(
+             "DELETE FROM department WHERE id = ?",[answer.id],
+             function(err,res) {
+              if (err) throw err;
+                console.log("department was deleted");
+                startRun();
+               
+        }
+         )});
+         }
+      function imDone() {
+      console.log("Good BYE");
+      connection.end();
+   }
+  
