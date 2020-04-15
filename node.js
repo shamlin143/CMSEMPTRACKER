@@ -18,6 +18,7 @@ startRun();
 });
 
 
+let id_list = [];
 function startRun() {
   inquirer
   .prompt({
@@ -50,8 +51,10 @@ function startRun() {
          departmentView();
          break; 
 
-       case "Update Employee Role":
+       case "Update Employee Roles":
+       
          updateEmployeeRole();
+    
          break; 
 
       case "Add Employee":
@@ -67,7 +70,7 @@ function startRun() {
           break;
 
       case "Delete Employee":
-        employeeView(); 
+       employeeView();
         deleteEmployee();
         break; 
         
@@ -90,7 +93,7 @@ function startRun() {
    function employeeView() {
    connection.query("SELECT id,first_name,last_name,role_id,manager_id FROM employee", function(err, res, fields) {
     if (err) throw err;
-    console.log(res);
+    console.log(res)
     startRun();
   });
 }
@@ -236,6 +239,11 @@ function addEmployee() {
         type: "input",
         message: "what is Employee's id?",
       },
+            {
+        name: "id",
+        type: "input",
+        message: "what is Employee's id?",
+      },
         ])
       .then(function(answer) {
         // when finished prompting, insert a new item into the db with that info
@@ -297,6 +305,38 @@ function addEmployee() {
         }
          )});
          }
+
+                         // function to handle deleting an employee
+        function updateEmployeeRole() {
+
+        inquirer
+           .prompt([
+         {
+           name: "id",
+           type: "input",
+           message: "what is Employee's id?"
+         },
+         {
+          name: "role_id",
+          type: "input",
+          message: "what is the role id?",
+        },
+           ])
+         .then(function(answer) {
+           // when finished prompting, insert a new item into the db with that info
+         
+           connection.query(
+             "UPDATE employee set role_id = ? WHERE id = ?",[answer.role_id,answer.id],
+             function(err,res) {
+              if (err) throw err;
+                console.log("Employee Role was updated");
+                startRun();
+               
+        }
+         )});
+
+          }                 
+         
       function imDone() {
       console.log("Good BYE");
       connection.end();
